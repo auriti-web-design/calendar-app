@@ -70,7 +70,7 @@ const CalendarApp = () => {
     if (clickedDate >= today || isSameDay(clickedDate, today)) {
       setSelectedDate(clickedDate);
       setShowEventPopup(true);
-      setEventTime({ hours: "0", minutes: "00" });
+      setEventTime({ hours: "00", minutes: "00" });
       setEventText("");
     }
   };
@@ -171,10 +171,24 @@ const CalendarApp = () => {
                 min={0}
                 max={60}
                 className="minutes"
+                value={eventTime.minutes}
+                onChange={(e) =>
+                  setEventTime({ ...eventTime, minutes: e.target.value })
+                }
               />
             </div>
-            <textarea placeholder="Enter Event Text (Maximum 60 Characters)"></textarea>
-            <button className="event-popup-btn">Aggiungi Evento</button>
+            <textarea
+              placeholder="Enter Event Text (Maximum 60 Characters)"
+              value={eventText}
+              onChange={(e) => {
+                if (e.target.value.length <= 60) {
+                  setEventText(e.target.value);
+                }
+              }}
+            ></textarea>
+            <button className="event-popup-btn" onClick={handleEventSubmit}>
+              Aggiungi Evento
+            </button>
             <button
               className="close-event-popup"
               onClick={() => setShowEventPopup(false)}
@@ -185,17 +199,21 @@ const CalendarApp = () => {
         )}
 
         {/* Esempio di evento (hardcoded) */}
-        <div className="event">
-          <div className="event-date-wrapper">
-            <div className="event-date">15 Mag, 2024</div>
-            <div className="event-time">10:00</div>
+        {events.map((event, index) => (
+          <div className="event" key={index}>
+            <div className="event-date-wrapper">
+              <div className="event-date">{`${
+                monthOfYear[event.date.getMonth()]
+              } ${event.date.getDate()}, ${event.date.getFullYear} }`}</div>
+              <div className="event-time">{event.time}</div>
+            </div>
+            <div className="event-text">{event.tex}</div>
+            <div className="event-buttons">
+              <i className="bx bxs-edit"></i>
+              <i className="bx bxs-message-alt-x"></i>
+            </div>
           </div>
-          <div className="event-text">Meeting con John Doe</div>
-          <div className="event-buttons">
-            <i className="bx bxs-edit"></i>
-            <i className="bx bxs-message-alt-x"></i>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
