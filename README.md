@@ -191,7 +191,20 @@ An interactive calendar application built with [React](https://react.dev/) tha
 📂 Project Structure
 --------------------
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   src/  ├── Components/  │   ├── CalendarApp.jsx       # 📱 Main component  │   ├── CalendarApp.css       # 🎨 Calendar styles  │   └── EventComponents/  │       ├── EventForm.jsx     # 📝 Event forms  │       ├── EventCard.jsx     # 🎴 Event cards  │       ├── eventConstants.js # ⚙️ Configurations  │       └── EventComponents.css  ├── App.jsx  ├── main.jsx  └── index.css   `
+```bash
+src/
+├── Components/
+│   ├── CalendarApp.jsx       # 📱 Main Component
+│   ├── CalendarApp.css       # 🎨 Calendar styles
+│   └── EventComponents/
+│       ├── EventForm.jsx     # 📝 Event forms
+│       ├── EventCard.jsx     # 🎴 Event cards
+│       ├── eventConstants.js # ⚙️ Configurations
+│       └── EventComponents.css
+├── App.jsx
+├── main.jsx
+└── index.css
+```
 
 ⭐ Key Features
 --------------
