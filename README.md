@@ -152,6 +152,212 @@ npm run build
 
 ---
 
-📖 Per maggiori informazioni, consulta la [documentazione completa](docs/README.md) o [apri una issue](https://github.com/your-repo/issues).
+📖 Per maggiori informazioni, consulta la [documentazione completa](docs/README.md) o [apri una issue](https://github.com/auriti-web-design/calendar-app/issues).
 
 🌟 Se ti piace questo progetto, metti una stella su [GitHub](https://github.com/auriti-web-design/calendar-app)!
+
+___
+
+🗓️ React Event Calendar
+=============================
+
+📑 Table of Contents
+--------------------
+
+*   [Overview](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-overview)
+
+*   [Project Structure](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-project-structure)
+
+*   [Key Features](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-key-features)
+
+*   [Components](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-components)
+
+*   [Technologies & Dependencies](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#️-technologies--dependencies)
+
+*   [Installation & Setup](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-installation--setup)
+
+*   [Usage](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-usage)
+
+*   [Performance & Accessibility](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-performance--accessibility)
+
+*   [Development Notes](https://app.omnigpt.co/threads/3eeb18af-c9ae-4766-b21a-e03d2bfd516d#-development-notes)
+
+
+🎯 Overview
+-----------
+
+An interactive calendar application built with [React](https://react.dev/) that enables users to manage events with custom categories and priority levels. Perfect for both personal and professional schedule management.
+
+📂 Project Structure
+--------------------
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   src/  ├── Components/  │   ├── CalendarApp.jsx       # 📱 Main component  │   ├── CalendarApp.css       # 🎨 Calendar styles  │   └── EventComponents/  │       ├── EventForm.jsx     # 📝 Event forms  │       ├── EventCard.jsx     # 🎴 Event cards  │       ├── eventConstants.js # ⚙️ Configurations  │       └── EventComponents.css  ├── App.jsx  ├── main.jsx  └── index.css   `
+
+⭐ Key Features
+--------------
+
+### 📅 Calendar Management
+
+*   Monthly calendar view with intuitive navigation
+
+*   Current day and events highlight
+
+*   Drag & drop system for event moving
+
+*   Multiple views (month, week, day)
+
+
+### 📋 Event Management
+
+*   Complete CRUD for events
+
+*   Categories:
+
+    *   💼 Work
+
+    *   👤 Personal
+
+    *   👨‍👩‍👦 Family
+
+    *   ❤️ Health
+
+    *   🤝 Social
+
+*   Priorities:
+
+    *   🔴 High
+
+    *   🟡 Medium
+
+    *   🔵 Low
+
+
+### 🎨 UI/UX Features
+
+*   Mobile-first responsive design
+
+*   Automatic light/dark theme
+
+*   Smooth animations
+
+*   [Boxicons](https://boxicons.com/) for vector icons
+
+
+🧩 Components
+-------------
+
+### 📱 CalendarApp.jsx
+
+Manages main application logic and global state:
+
+*   🔄 Application state management
+
+*   📅 Calendar logic
+
+*   💾 Data persistence (localStorage)
+
+*   🎯 Event management
+
+
+### 📝 EventForm.jsx
+
+Validated form for event creation and editing:
+
+*   📋 Category and priority selection
+
+*   ⏰ Date/time setting
+
+*   ✅ Real-time input validation
+
+*   🎨 Responsive UI/UX
+
+
+### 🎴 EventCard.jsx
+
+Event card featuring:
+
+*   🏷️ Visual indicators for category/priority
+
+*   🔄 Quick options (edit/delete)
+
+*   📱 Responsive layout
+
+*   🎨 Smooth animations
+
+
+🛠️ Technologies & Dependencies
+-------------------------------
+
+*   [React](https://react.dev/) v18.3
+
+*   [Boxicons](https://boxicons.com/) for icons
+
+*   [PropTypes](https://www.npmjs.com/package/prop-types) for type checking
+
+*   LocalStorage for data persistence
+
+
+🚀 Installation & Setup
+-----------------------
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # Clone repository  git clone [repository-URL]  # Install dependencies  npm install  # Start development server  npm run dev  # Production build  npm run build   `
+
+📚 Usage
+--------
+
+### 📝 Creating Events
+
+1.  Click desired date on calendar
+
+2.  Fill in event form with details
+
+3.  Select category and priority from available options
+
+4.  Confirm creation with "Create Event" button
+
+
+### ⚙️ Managing Events
+
+*   ✏️ **Edit**: click edit icon to update details
+
+*   🗑️ **Delete**: click delete icon to remove event
+
+*   🔄 **Move**: use drag & drop to move between dates
+
+
+### ⚡ Performance & Accessibility
+
+*   🔄 Render optimization with [React.memo](https://react.dev/reference/react/memo)
+
+*   📦 Component lazy loading for optimized loading
+
+*   ♿ [WAI-ARIA](https://www.w3.org/WAI/ARIA/apg/) compliant
+
+*   ⌨️ 100% keyboard navigation support
+
+
+### 📝 Development Notes
+
+*   📦 [Node.js](https://nodejs.org/) ≥ 14.0.0
+
+*   🌐 Tested on major browsers (Chrome, Firefox, Safari)
+
+*   📱 Mobile-first approach
+
+*   📖 Check the [Contribution Guide](https://app.omnigpt.co/threads/CONTRIBUTING.md)
+
+
+### 🔗 Useful Links
+
+*   📄 [MIT License](https://app.omnigpt.co/threads/LICENSE.md)
+
+*   📚 [API Documentation](https://app.omnigpt.co/threads/docs/API.md)
+
+*   💡 [Development Guide](https://app.omnigpt.co/threads/docs/DEVELOPMENT.md)
+
+
+### 👥 Author
+
+[Juan Camilo Auriti](https://github.com/auriti-web-design)
+
+📖 For more information, check the [complete documentation](https://app.omnigpt.co/threads/docs/README.md) or [open an issue](https://github.com/auriti-web-design/calendar-app/issues).
