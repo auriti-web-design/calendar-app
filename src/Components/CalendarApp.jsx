@@ -1,200 +1,217 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import EventForm from "./EventComponents/EventForm";
+import EventCard from "./EventComponents/EventCard";
+import { sortEvents } from "./EventComponents/eventConstants";
+import "./CalendarApp.css";
+import "./EventComponents/EventComponents.css";
 
+/**
+ * Componente principale dell'applicazione calendario
+ * Gestisce la visualizzazione del calendario e degli eventi
+ */
 const CalendarApp = () => {
-  // Costanti per giorni e mesi in italiano
-  const daysOfWeek = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
-  const monthOfYear = [
-    "Gennaio",
-    "Febbraio",
-    "Marzo",
-    "Aprile",
-    "Maggio",
-    "Giugno",
-    "Luglio",
-    "Agosto",
-    "Settembre",
-    "Ottobre",
-    "Novembre",
-    "Dicembre",
-  ];
+  // Costanti per i giorni e mesi in italiano
+  const daysOfWeek = useMemo(
+    () => ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"],
+    []
+  );
+  const monthOfYear = useMemo(
+    () => [
+      "Gennaio",
+      "Febbraio",
+      "Marzo",
+      "Aprile",
+      "Maggio",
+      "Giugno",
+      "Luglio",
+      "Agosto",
+      "Settembre",
+      "Ottobre",
+      "Novembre",
+      "Dicembre",
+    ],
+    []
+  );
 
-  // Stati base del calendario
+  // Stati per la gestione del calendario
   const currentDate = new Date();
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState(currentDate);
   const [showEventPopup, setShowEventPopup] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+
+  // Stato per gli eventi con inizializzazione da localStorage
   const [events, setEvents] = useState(() => {
-    // Recupera gli eventi dal localStorage all'inizializzazione
-    const savedEvents = localStorage.getItem("calendarEvents");
-    if (savedEvents) {
-      // Convertiamo le date da stringhe a oggetti Date
-      const parsedEvents = JSON.parse(savedEvents).map((event) => ({
-        ...event,
-        date: new Date(event.date),
-      }));
-      return parsedEvents;
+    try {
+      const savedEvents = localStorage.getItem("calendarEvents");
+      if (savedEvents) {
+        return JSON.parse(savedEvents).map((event) => ({
+          ...event,
+          date: new Date(event.date),
+          category: event.category || "work",
+          priority: event.priority || "medium",
+        }));
+      }
+    } catch (error) {
+      console.error("Errore nel caricamento degli eventi:", error);
     }
     return [];
   });
-  const [eventTime, setEventTime] = useState({ hours: "00", minutes: "00" });
-  const [eventText, setEventText] = useState("");
 
-  // Salva gli eventi nel localStorage ogni volta che cambiano
+  /**
+   * Salva gli eventi nel localStorage quando cambiano
+   */
   useEffect(() => {
-    localStorage.setItem("calendarEvents", JSON.stringify(events));
+    try {
+      localStorage.setItem("calendarEvents", JSON.stringify(events));
+    } catch (error) {
+      console.error("Errore nel salvataggio degli eventi:", error);
+    }
   }, [events]);
 
-  // Calcolo dei giorni del calendario
-  const getFirstDayOfMonth = () => {
-    let firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    // Conversione da domenica = 0 a lunedì = 0
+  /**
+   * Calcola il primo giorno del mese
+   * @returns {number} Indice del primo giorno del mese (0-6)
+   */
+  const getFirstDayOfMonth = useCallback(() => {
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     return firstDay === 0 ? 6 : firstDay - 1;
-  };
+  }, [currentMonth, currentYear]);
 
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDaysOfMonth = getFirstDayOfMonth();
+  /**
+   * Calcola il numero di giorni nel mese corrente
+   */
+  const daysInMonth = useMemo(() => {
+    return new Date(currentYear, currentMonth + 1, 0).getDate();
+  }, [currentMonth, currentYear]);
 
-  // Navigazione tra i mesi
+  const firstDaysOfMonth = useMemo(() => {
+    return getFirstDayOfMonth();
+  }, [getFirstDayOfMonth]);
+
+  /**
+   * Gestisce la navigazione al mese precedente
+   */
   const prevMonth = () => {
     if (currentMonth === 0) {
-      setCurrentYear(currentYear - 1);
+      setCurrentYear((prev) => prev - 1);
       setCurrentMonth(11);
     } else {
-      setCurrentMonth(currentMonth - 1);
+      setCurrentMonth((prev) => prev - 1);
     }
   };
 
+  /**
+   * Gestisce la navigazione al mese successivo
+   */
   const nextMonth = () => {
     if (currentMonth === 11) {
-      setCurrentYear(currentYear + 1);
+      setCurrentYear((prev) => prev + 1);
       setCurrentMonth(0);
     } else {
-      setCurrentMonth(currentMonth + 1);
+      setCurrentMonth((prev) => prev + 1);
     }
   };
 
-  // Validazione dell'input tempo
-  const validateTimeInput = (value, type) => {
-    const numValue = parseInt(value);
-    if (type === "hours") {
-      return numValue >= 0 && numValue <= 23 ? value : eventTime.hours;
-    }
-    return numValue >= 0 && numValue <= 59 ? value : eventTime.minutes;
-  };
-
-  const handleTimeChange = (e, type) => {
-    const validatedValue = validateTimeInput(e.target.value, type);
-    setEventTime((prev) => ({
-      ...prev,
-      [type]: validatedValue.padStart(2, "0"),
-    }));
-  };
-
-  // Gestione click sui giorni
-  const handleDayClick = (day) => {
-    const clickedDate = new Date(currentYear, currentMonth, day);
-    const today = new Date();
-
-    if (clickedDate >= today || isSameDay(clickedDate, today)) {
-      setSelectedDate(clickedDate);
-      setShowEventPopup(true);
-      setEventTime({ hours: "00", minutes: "00" });
-      setEventText("");
-    } else {
-      alert("Non è possibile aggiungere eventi a date passate");
-    }
-  };
-
-  // Utility per confrontare date
-  const isSameDay = (date1, date2) => {
+  /**
+   * Verifica se due date sono lo stesso giorno
+   */
+  const isSameDay = useCallback((date1, date2) => {
     return (
       date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
       date1.getDate() === date2.getDate()
     );
-  };
+  }, []);
 
-  // Gestione degli eventi
-  const handleEventSubmit = () => {
-    if (!eventText.trim()) {
-      alert("Inserisci un testo per l'evento");
-      return;
-    }
+  /**
+   * Gestisce il click su un giorno del calendario
+   */
+  const handleDayClick = useCallback(
+    (day) => {
+      const clickedDate = new Date(currentYear, currentMonth, day);
+      const today = new Date();
 
-    const newEvent = {
-      id: Date.now(),
-      date: selectedDate,
-      time: `${eventTime.hours}:${eventTime.minutes}`,
-      text: eventText.trim(),
-    };
+      if (clickedDate >= today || isSameDay(clickedDate, today)) {
+        setSelectedDate(clickedDate);
+        setShowEventPopup(true);
+        setEditingEvent(null);
+      } else {
+        alert("Non è possibile aggiungere eventi a date passate");
+      }
+    },
+    [currentMonth, currentYear, isSameDay]
+  );
 
-    setEvents((prevEvents) => [...prevEvents, newEvent]);
-    setEventTime({ hours: "00", minutes: "00" });
-    setEventText("");
-    setShowEventPopup(false);
-  };
-
-  // Funzione di eliminazione eventi aggiornata
-  const deleteEvent = (eventId) => {
-    setEvents((prevEvents) =>
-      prevEvents.filter((event) => event.id !== eventId)
-    );
-  };
-
-  // Funzione di utility per pulire tutti gli eventi (opzionale)
-  const clearAllEvents = () => {
-    if (window.confirm("Sei sicuro di voler eliminare tutti gli eventi?")) {
-      setEvents([]);
-      localStorage.removeItem("calendarEvents");
-    }
-  };
-
-  // Funzione per esportare gli eventi (opzionale)
-  const exportEvents = () => {
-    const eventsJson = JSON.stringify(events, null, 2);
-    const blob = new Blob([eventsJson], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `calendar_events_${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  // Funzione per importare gli eventi (opzionale)
-  const importEvents = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const importedEvents = JSON.parse(e.target.result).map((event) => ({
-            ...event,
-            date: new Date(event.date),
-            id: event.id || Date.now() + Math.random(), // Assicura ID unici
-          }));
-          setEvents((prevEvents) => [...prevEvents, ...importedEvents]);
-        } catch (error) {
-          alert("Errore durante l'importazione degli eventi");
-          console.error("Errore importazione:", error);
+  /**
+   * Gestisce la creazione o modifica di un evento
+   */
+  const handleEventSubmit = useCallback(
+    (eventData) => {
+      setEvents((prev) => {
+        if (editingEvent) {
+          // Modifica evento esistente
+          return prev.map((event) =>
+            event.id === editingEvent.id
+              ? { ...eventData, date: selectedDate }
+              : event
+          );
+        } else {
+          // Crea nuovo evento
+          return [...prev, { ...eventData, date: selectedDate }];
         }
-      };
-      reader.readAsText(file);
-    }
-  };
+      });
+      setShowEventPopup(false);
+      setEditingEvent(null);
+    },
+    [editingEvent, selectedDate]
+  );
 
-  // Componente principale
+  /**
+   * Gestisce l'eliminazione di un evento
+   */
+  const deleteEvent = useCallback((eventId) => {
+    setEvents((prev) => prev.filter((event) => event.id !== eventId));
+  }, []);
+
+  /**
+   * Gestisce l'apertura del form di modifica
+   */
+  const handleEditEvent = useCallback((event) => {
+    setEditingEvent(event);
+    setSelectedDate(event.date);
+    setShowEventPopup(true);
+  }, []);
+
+  /**
+   * Filtra e ordina gli eventi per la visualizzazione
+   */
+  const sortedEvents = useMemo(() => {
+    return sortEvents(events);
+  }, [events]);
+
+  /**
+   * Verifica se un giorno ha eventi
+   */
+  const hasEvents = useCallback(
+    (day) => {
+      return events.some(
+        (event) =>
+          event.date.getDate() === day &&
+          event.date.getMonth() === currentMonth &&
+          event.date.getFullYear() === currentYear
+      );
+    },
+    [events, currentMonth, currentYear]
+  );
+
   return (
     <div className="calendar-app">
+      {/* Sezione Calendario */}
       <div className="calendar">
         <h1 className="heading">Calendario</h1>
 
-        {/* Barra di navigazione del calendario */}
         <div className="navigate-date">
           <h2 className="month">{monthOfYear[currentMonth]}</h2>
           <h2 className="year">{currentYear}</h2>
@@ -216,7 +233,7 @@ const CalendarApp = () => {
           </div>
         </div>
 
-        {/* Griglia dei giorni della settimana */}
+        {/* Griglia giorni della settimana */}
         <div className="weekdays" role="row">
           {daysOfWeek.map((day) => (
             <span key={day} role="columnheader">
@@ -225,179 +242,71 @@ const CalendarApp = () => {
           ))}
         </div>
 
-        {/* Griglia dei giorni del mese */}
+        {/* Griglia giorni del mese */}
         <div className="days" role="grid">
-          {/* Celle vuote per allineamento */}
           {[...Array(firstDaysOfMonth)].map((_, index) => (
-            <span key={`empty-${index}`} className="empty-day" />
+            <span
+              key={`empty-${index}`}
+              className="empty-day"
+              role="gridcell"
+            />
           ))}
 
-          {/* Giorni del mese */}
           {[...Array(daysInMonth)].map((_, index) => {
             const day = index + 1;
-            const isToday =
-              day === currentDate.getDate() &&
-              currentMonth === currentDate.getMonth() &&
-              currentYear === currentDate.getFullYear();
-
-            // Verifica se ci sono eventi per questo giorno
-            const hasEvents = events.some(
-              (event) =>
-                event.date.getDate() === day &&
-                event.date.getMonth() === currentMonth &&
-                event.date.getFullYear() === currentYear
+            const isToday = isSameDay(
+              new Date(currentYear, currentMonth, day),
+              new Date()
             );
+            const dayHasEvents = hasEvents(day);
 
             return (
               <span
                 key={day}
-                className={`day ${isToday ? "current-day" : ""} ${
-                  hasEvents ? "has-events" : ""
-                }`}
                 onClick={() => handleDayClick(day)}
+                className={`${isToday ? "current-day" : ""} ${
+                  dayHasEvents ? "has-events" : ""
+                }`}
                 role="gridcell"
                 tabIndex={0}
-                aria-label={`${day} ${monthOfYear[currentMonth]} ${currentYear}`}
+                aria-label={`${day} ${
+                  monthOfYear[currentMonth]
+                } ${currentYear}${dayHasEvents ? ", ha eventi" : ""}`}
               >
                 {day}
               </span>
             );
           })}
         </div>
-
-        {/* Azioni del calendario */}
-        <div className="calendar-actions">
-          <button
-            onClick={exportEvents}
-            className="action-button"
-            title="Esporta Eventi"
-          >
-            <i className="bx bx-export"></i> Esporta
-          </button>
-
-          <label className="action-button">
-            <i className="bx bx-import"></i> Importa
-            <input
-              type="file"
-              accept=".json"
-              onChange={importEvents}
-              style={{ display: "none" }}
-            />
-          </label>
-
-          <button
-            onClick={clearAllEvents}
-            className="action-button danger"
-            title="Elimina tutti gli eventi"
-          >
-            <i className="bx bx-trash"></i> Elimina Tutti
-          </button>
-        </div>
       </div>
 
-      {/* Popup per la creazione degli eventi */}
-      {showEventPopup && (
-        <div className="event-popup" role="dialog" aria-label="Nuovo evento">
-          <div className="time-input">
-            <label className="event-popup-time">Orario</label>
-            <input
-              type="number"
-              name="hours"
-              min={0}
-              max={23}
-              className="hours"
-              value={eventTime.hours}
-              onChange={(e) => handleTimeChange(e, "hours")}
-              aria-label="Ore"
-            />
-            <span>:</span>
-            <input
-              type="number"
-              name="minutes"
-              min={0}
-              max={59}
-              className="minutes"
-              value={eventTime.minutes}
-              onChange={(e) => handleTimeChange(e, "minutes")}
-              aria-label="Minuti"
-            />
-          </div>
-
-          <textarea
-            placeholder="Inserisci il testo dell'evento (massimo 60 caratteri)"
-            value={eventText}
-            onChange={(e) => {
-              if (e.target.value.length <= 60) {
-                setEventText(e.target.value);
-              }
-            }}
-            aria-label="Testo evento"
-            maxLength={60}
+      {/* Sezione Eventi */}
+      <div className="events" role="complementary">
+        {sortedEvents.map((event) => (
+          <EventCard
+            key={event.id}
+            event={event}
+            onDelete={deleteEvent}
+            onEdit={handleEditEvent}
           />
+        ))}
 
-          <div className="popup-buttons">
-            <button
-              className="event-popup-btn"
-              onClick={handleEventSubmit}
-              disabled={!eventText.trim()}
-            >
-              Aggiungi Evento
-            </button>
-            <button
-              className="close-event-popup"
-              onClick={() => setShowEventPopup(false)}
-              aria-label="Chiudi"
-            >
-              <i className="bx bx-x"></i>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Lista degli eventi */}
-      <div className="events" role="list">
-        {/* Ordinamento degli eventi per data e ora */}
-        {events
-          .sort((a, b) => {
-            // Prima ordina per data
-            const dateCompare = a.date - b.date;
-            if (dateCompare !== 0) return dateCompare;
-
-            // Se le date sono uguali, ordina per ora
-            const [aHours, aMinutes] = a.time.split(":").map(Number);
-            const [bHours, bMinutes] = b.time.split(":").map(Number);
-            const timeCompareHours = aHours - bHours;
-            if (timeCompareHours !== 0) return timeCompareHours;
-            return aMinutes - bMinutes;
-          })
-          .map((event) => (
-            <div className="event" key={event.id} role="listitem">
-              <div className="event-date-wrapper">
-                <div className="event-date">
-                  {`${
-                    monthOfYear[event.date.getMonth()]
-                  } ${event.date.getDate()}, ${event.date.getFullYear()}`}
-                </div>
-                <div className="event-time">{event.time}</div>
-              </div>
-              <div className="event-text">{event.text}</div>
-              <div className="event-buttons">
-                <button
-                  className="event-button"
-                  onClick={() => deleteEvent(event.id)}
-                  aria-label="Elimina evento"
-                >
-                  <i className="bx bxs-trash"></i>
-                </button>
-              </div>
-            </div>
-          ))}
-
-        {/* Messaggio quando non ci sono eventi */}
         {events.length === 0 && (
           <div className="no-events">Non ci sono eventi programmati</div>
         )}
       </div>
+
+      {/* Form Eventi */}
+      {showEventPopup && (
+        <EventForm
+          onSubmit={handleEventSubmit}
+          initialData={editingEvent || { date: selectedDate }}
+          onClose={() => {
+            setShowEventPopup(false);
+            setEditingEvent(null);
+          }}
+        />
+      )}
     </div>
   );
 };
