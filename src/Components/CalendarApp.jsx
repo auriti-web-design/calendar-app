@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const CalendarApp = () => {
   // Costanti per giorni e mesi in italiano
@@ -24,9 +24,26 @@ const CalendarApp = () => {
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState(currentDate);
   const [showEventPopup, setShowEventPopup] = useState(false);
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState(() => {
+    // Recupera gli eventi dal localStorage all'inizializzazione
+    const savedEvents = localStorage.getItem("calendarEvents");
+    if (savedEvents) {
+      // Convertiamo le date da stringhe a oggetti Date
+      const parsedEvents = JSON.parse(savedEvents).map((event) => ({
+        ...event,
+        date: new Date(event.date),
+      }));
+      return parsedEvents;
+    }
+    return [];
+  });
   const [eventTime, setEventTime] = useState({ hours: "00", minutes: "00" });
   const [eventText, setEventText] = useState("");
+
+  // Salva gli eventi nel localStorage ogni volta che cambiano
+  useEffect(() => {
+    localStorage.setItem("calendarEvents", JSON.stringify(events));
+  }, [events]);
 
   // Calcolo dei giorni del calendario
   const getFirstDayOfMonth = () => {
@@ -106,7 +123,7 @@ const CalendarApp = () => {
     }
 
     const newEvent = {
-      id: Date.now(), // Timestamp come ID univoco
+      id: Date.now(),
       date: selectedDate,
       time: `${eventTime.hours}:${eventTime.minutes}`,
       text: eventText.trim(),
@@ -118,11 +135,57 @@ const CalendarApp = () => {
     setShowEventPopup(false);
   };
 
-  // Eliminazione eventi
+  // Funzione di eliminazione eventi aggiornata
   const deleteEvent = (eventId) => {
     setEvents((prevEvents) =>
       prevEvents.filter((event) => event.id !== eventId)
     );
+  };
+
+  // Funzione di utility per pulire tutti gli eventi (opzionale)
+  const clearAllEvents = () => {
+    if (window.confirm("Sei sicuro di voler eliminare tutti gli eventi?")) {
+      setEvents([]);
+      localStorage.removeItem("calendarEvents");
+    }
+  };
+
+  // Funzione per esportare gli eventi (opzionale)
+  const exportEvents = () => {
+    const eventsJson = JSON.stringify(events, null, 2);
+    const blob = new Blob([eventsJson], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `calendar_events_${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Funzione per importare gli eventi (opzionale)
+  const importEvents = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedEvents = JSON.parse(e.target.result).map((event) => ({
+            ...event,
+            date: new Date(event.date),
+            id: event.id || Date.now() + Math.random(), // Assicura ID unici
+          }));
+          setEvents((prevEvents) => [...prevEvents, ...importedEvents]);
+        } catch (error) {
+          alert("Errore durante l'importazione degli eventi");
+          console.error("Errore importazione:", error);
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   // Componente principale
@@ -177,10 +240,20 @@ const CalendarApp = () => {
               currentMonth === currentDate.getMonth() &&
               currentYear === currentDate.getFullYear();
 
+            // Verifica se ci sono eventi per questo giorno
+            const hasEvents = events.some(
+              (event) =>
+                event.date.getDate() === day &&
+                event.date.getMonth() === currentMonth &&
+                event.date.getFullYear() === currentYear
+            );
+
             return (
               <span
                 key={day}
-                className={`day ${isToday ? "current-day" : ""}`}
+                className={`day ${isToday ? "current-day" : ""} ${
+                  hasEvents ? "has-events" : ""
+                }`}
                 onClick={() => handleDayClick(day)}
                 role="gridcell"
                 tabIndex={0}
@@ -190,6 +263,35 @@ const CalendarApp = () => {
               </span>
             );
           })}
+        </div>
+
+        {/* Azioni del calendario */}
+        <div className="calendar-actions">
+          <button
+            onClick={exportEvents}
+            className="action-button"
+            title="Esporta Eventi"
+          >
+            <i className="bx bx-export"></i> Esporta
+          </button>
+
+          <label className="action-button">
+            <i className="bx bx-import"></i> Importa
+            <input
+              type="file"
+              accept=".json"
+              onChange={importEvents}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          <button
+            onClick={clearAllEvents}
+            className="action-button danger"
+            title="Elimina tutti gli eventi"
+          >
+            <i className="bx bx-trash"></i> Elimina Tutti
+          </button>
         </div>
       </div>
 
@@ -254,28 +356,47 @@ const CalendarApp = () => {
 
       {/* Lista degli eventi */}
       <div className="events" role="list">
-        {events.map((event) => (
-          <div className="event" key={event.id} role="listitem">
-            <div className="event-date-wrapper">
-              <div className="event-date">
-                {`${
-                  monthOfYear[event.date.getMonth()]
-                } ${event.date.getDate()}, ${event.date.getFullYear()}`}
+        {/* Ordinamento degli eventi per data e ora */}
+        {events
+          .sort((a, b) => {
+            // Prima ordina per data
+            const dateCompare = a.date - b.date;
+            if (dateCompare !== 0) return dateCompare;
+
+            // Se le date sono uguali, ordina per ora
+            const [aHours, aMinutes] = a.time.split(":").map(Number);
+            const [bHours, bMinutes] = b.time.split(":").map(Number);
+            const timeCompareHours = aHours - bHours;
+            if (timeCompareHours !== 0) return timeCompareHours;
+            return aMinutes - bMinutes;
+          })
+          .map((event) => (
+            <div className="event" key={event.id} role="listitem">
+              <div className="event-date-wrapper">
+                <div className="event-date">
+                  {`${
+                    monthOfYear[event.date.getMonth()]
+                  } ${event.date.getDate()}, ${event.date.getFullYear()}`}
+                </div>
+                <div className="event-time">{event.time}</div>
               </div>
-              <div className="event-time">{event.time}</div>
+              <div className="event-text">{event.text}</div>
+              <div className="event-buttons">
+                <button
+                  className="event-button"
+                  onClick={() => deleteEvent(event.id)}
+                  aria-label="Elimina evento"
+                >
+                  <i className="bx bxs-trash"></i>
+                </button>
+              </div>
             </div>
-            <div className="event-text">{event.text}</div>
-            <div className="event-buttons">
-              <button
-                className="event-button"
-                onClick={() => deleteEvent(event.id)}
-                aria-label="Elimina evento"
-              >
-                <i className="bx bxs-message-alt-x"></i>
-              </button>
-            </div>
-          </div>
-        ))}
+          ))}
+
+        {/* Messaggio quando non ci sono eventi */}
+        {events.length === 0 && (
+          <div className="no-events">Non ci sono eventi programmati</div>
+        )}
       </div>
     </div>
   );
