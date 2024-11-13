@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 const CalendarApp = () => {
+  // Costanti per giorni e mesi in italiano
   const daysOfWeek = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
   const monthOfYear = [
     "Gennaio",
@@ -17,6 +18,7 @@ const CalendarApp = () => {
     "Dicembre",
   ];
 
+  // Stati base del calendario
   const currentDate = new Date();
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
@@ -26,38 +28,36 @@ const CalendarApp = () => {
   const [eventTime, setEventTime] = useState({ hours: "00", minutes: "00" });
   const [eventText, setEventText] = useState("");
 
-  // Correzione del calcolo dei giorni iniziali considerando il calendario italiano
+  // Calcolo dei giorni del calendario
   const getFirstDayOfMonth = () => {
     let firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    // Convertiamo da domenica = 0 a lunedì = 0
+    // Conversione da domenica = 0 a lunedì = 0
     return firstDay === 0 ? 6 : firstDay - 1;
   };
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDaysOfMonth = getFirstDayOfMonth();
 
-  // Gestione migliorata della navigazione tra i mesi
+  // Navigazione tra i mesi
   const prevMonth = () => {
-    setCurrentMonth((prevMonth) => {
-      const newMonth = prevMonth === 0 ? 11 : prevMonth - 1;
-      if (newMonth === 11) {
-        setCurrentYear((prevYear) => prevYear - 1);
-      }
-      return newMonth;
-    });
+    if (currentMonth === 0) {
+      setCurrentYear(currentYear - 1);
+      setCurrentMonth(11);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
   };
 
   const nextMonth = () => {
-    setCurrentMonth((prevMonth) => {
-      const newMonth = prevMonth === 11 ? 0 : prevMonth + 1;
-      if (newMonth === 0) {
-        setCurrentYear((prevYear) => prevYear + 1);
-      }
-      return newMonth;
-    });
+    if (currentMonth === 11) {
+      setCurrentYear(currentYear + 1);
+      setCurrentMonth(0);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
   };
 
-  // Validazione migliorata per l'input del tempo
+  // Validazione dell'input tempo
   const validateTimeInput = (value, type) => {
     const numValue = parseInt(value);
     if (type === "hours") {
@@ -74,24 +74,22 @@ const CalendarApp = () => {
     }));
   };
 
+  // Gestione click sui giorni
   const handleDayClick = (day) => {
-    // Crea una nuova data per il giorno selezionato
     const clickedDate = new Date(currentYear, currentMonth, day);
     const today = new Date();
 
-    // Verifica se la data selezionata è oggi o nel futuro
     if (clickedDate >= today || isSameDay(clickedDate, today)) {
-      setSelectedDate(clickedDate); // Ora setSelectedDate viene utilizzato
+      setSelectedDate(clickedDate);
       setShowEventPopup(true);
       setEventTime({ hours: "00", minutes: "00" });
       setEventText("");
     } else {
-      // Opzionale: feedback per date passate
       alert("Non è possibile aggiungere eventi a date passate");
     }
   };
 
-  // Aggiungi anche questa funzione di utilità
+  // Utility per confrontare date
   const isSameDay = (date1, date2) => {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -100,7 +98,7 @@ const CalendarApp = () => {
     );
   };
 
-  // Gestione migliorata degli eventi
+  // Gestione degli eventi
   const handleEventSubmit = () => {
     if (!eventText.trim()) {
       alert("Inserisci un testo per l'evento");
@@ -108,7 +106,7 @@ const CalendarApp = () => {
     }
 
     const newEvent = {
-      id: Date.now(), // Aggiunto ID univoco per gestire meglio modifiche ed eliminazioni
+      id: Date.now(), // Timestamp come ID univoco
       date: selectedDate,
       time: `${eventTime.hours}:${eventTime.minutes}`,
       text: eventText.trim(),
@@ -120,23 +118,23 @@ const CalendarApp = () => {
     setShowEventPopup(false);
   };
 
-  // Nuova funzione per eliminare un evento
+  // Eliminazione eventi
   const deleteEvent = (eventId) => {
     setEvents((prevEvents) =>
       prevEvents.filter((event) => event.id !== eventId)
     );
   };
 
+  // Componente principale
   return (
     <div className="calendar-app">
       <div className="calendar">
         <h1 className="heading">Calendario</h1>
 
-        {/* Sezione di navigazione corretta */}
+        {/* Barra di navigazione del calendario */}
         <div className="navigate-date">
           <h2 className="month">{monthOfYear[currentMonth]}</h2>
-          <h2 className="year">{currentYear}</h2>{" "}
-          {/* Correzione dell'anno hardcoded */}
+          <h2 className="year">{currentYear}</h2>
           <div className="buttons">
             <button
               className="nav-button"
@@ -155,7 +153,7 @@ const CalendarApp = () => {
           </div>
         </div>
 
-        {/* Rendering ottimizzato dei giorni della settimana */}
+        {/* Griglia dei giorni della settimana */}
         <div className="weekdays" role="row">
           {daysOfWeek.map((day) => (
             <span key={day} role="columnheader">
@@ -164,11 +162,14 @@ const CalendarApp = () => {
           ))}
         </div>
 
-        {/* Rendering ottimizzato della griglia dei giorni */}
+        {/* Griglia dei giorni del mese */}
         <div className="days" role="grid">
+          {/* Celle vuote per allineamento */}
           {[...Array(firstDaysOfMonth)].map((_, index) => (
             <span key={`empty-${index}`} className="empty-day" />
           ))}
+
+          {/* Giorni del mese */}
           {[...Array(daysInMonth)].map((_, index) => {
             const day = index + 1;
             const isToday =
@@ -192,7 +193,7 @@ const CalendarApp = () => {
         </div>
       </div>
 
-      {/* Popup eventi migliorato */}
+      {/* Popup per la creazione degli eventi */}
       {showEventPopup && (
         <div className="event-popup" role="dialog" aria-label="Nuovo evento">
           <div className="time-input">
@@ -251,7 +252,7 @@ const CalendarApp = () => {
         </div>
       )}
 
-      {/* Lista eventi corretta */}
+      {/* Lista degli eventi */}
       <div className="events" role="list">
         {events.map((event) => (
           <div className="event" key={event.id} role="listitem">
