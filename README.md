@@ -312,8 +312,21 @@ Event card featuring:
 
 🚀 Installation & Setup
 -----------------------
+```
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # Clone repository  git clone [repository-URL]  # Install dependencies  npm install  # Start development server  npm run dev  # Production build  npm run build   `
+# Clone repository 
+git clone [repository-URL]
+
+# Install dependencies 
+npm install
+
+# Start development server 
+npm run dev
+
+# Production build 
+npm run build
+
+```
 
 📚 Usage
 --------
